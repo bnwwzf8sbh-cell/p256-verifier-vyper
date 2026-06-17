@@ -6,7 +6,7 @@
 @author pcaversaccio
 @notice These functions can be used to verify a P256 (a.k.a. secp256r1 elliptic curve) signature.
         The implementation is inspired by dcposch's and nalinbhardwaj's implementation here:
-        https://github.com/daimo-eth/p256-verifier/blob/master/src/P256Verifier.sol. Also, for more
+        #https://github.com/daimo-eth/p256-verifier/blob/master/src/P256Verifier.sol. Also, for more
         technical details, please refer to RIP-7212: https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md.
 """
 
