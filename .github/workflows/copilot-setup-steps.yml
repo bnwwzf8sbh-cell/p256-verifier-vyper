@@ -29,12 +29,22 @@ jobs:
 
       - name: Install solc
         run: |
-          sudo curl -L https://github.com/ethereum/solidity/releases/download/v0.8.35/solc-static-linux -o /usr/local/bin/solc
-          sudo chmod +x /usr/local/bin/solc
+          SOLC_URL="https://github.com/ethereum/solidity/releases/download/v0.8.35/solc-static-linux"
+          SOLC_SHA256="fa8ac9a32d301ad023a36ee5a29f8e291fe3200c60244e43c142539e82a617f4"
+          TMP_SOLC="$(mktemp)"
+          curl -L "$SOLC_URL" -o "$TMP_SOLC"
+          echo "$SOLC_SHA256  $TMP_SOLC" | sha256sum -c -
+          sudo install -m 0755 "$TMP_SOLC" /usr/local/bin/solc
+          rm -f "$TMP_SOLC"
 
       - name: Wrap forge with local solc
         run: |
-          REAL_FORGE="$(readlink -f "$(command -v forge)")"
+          REAL_FORGE="$(command -v forge || true)"
+          if [ -z "$REAL_FORGE" ]; then
+            echo "forge not found after Foundry installation" >&2
+            exit 1
+          fi
+          REAL_FORGE="$(readlink -f "$REAL_FORGE")"
           sudo install -m 0755 "$REAL_FORGE" /usr/local/bin/forge-real
           cat <<'EOF' | sudo tee /usr/local/bin/forge > /dev/null
           #!/usr/bin/env bash
