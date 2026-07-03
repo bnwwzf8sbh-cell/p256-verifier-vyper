@@ -1,0 +1,44 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install Vyper
+        run: python -m pip install --user vyper==0.3.10
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install solc
+        run: |
+          sudo curl -L https://github.com/ethereum/solidity/releases/download/v0.8.35/solc-static-linux -o /usr/local/bin/solc
+          sudo chmod +x /usr/local/bin/solc
+
+      - name: Wrap forge with local solc
+        run: |
+          REAL_FORGE="$(readlink -f "$(command -v forge)")"
+          sudo install -m 0755 "$REAL_FORGE" /usr/local/bin/forge-real
+          cat <<'EOF' | sudo tee /usr/local/bin/forge > /dev/null
+          #!/usr/bin/env bash
+          export FOUNDRY_SOLC=/usr/local/bin/solc
+          exec /usr/local/bin/forge-real "$@"
+          EOF
+          sudo chmod +x /usr/local/bin/forge
