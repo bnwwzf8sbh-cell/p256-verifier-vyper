@@ -25,14 +25,14 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: nightly
+          version: v1.7.1
 
       - name: Install solc
         run: |
           SOLC_URL="https://github.com/ethereum/solidity/releases/download/v0.8.35/solc-static-linux"
           SOLC_SHA256="fa8ac9a32d301ad023a36ee5a29f8e291fe3200c60244e43c142539e82a617f4"
           TMP_SOLC="$(mktemp)"
-          curl -L "$SOLC_URL" -o "$TMP_SOLC"
+          curl --fail --location "$SOLC_URL" -o "$TMP_SOLC"
           echo "$SOLC_SHA256  $TMP_SOLC" | sha256sum -c -
           sudo install -m 0755 "$TMP_SOLC" /usr/local/bin/solc
           rm -f "$TMP_SOLC"
