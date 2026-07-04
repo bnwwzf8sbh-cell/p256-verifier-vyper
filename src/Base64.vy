@@ -253,9 +253,8 @@ def _index_of(char: String[1], base64_url: bool) -> uint256:
                 break
 
         # The following line cannot overflow because we have
-        # limited the for loop by the `constant` parameter
-        # `_TABLE_URL_CHARS`, which is bounded by the
-        # maximum value of `65`.
+        # limited the for loop by the hardcoded range value of 65,
+        # which corresponds to the length of the Base64 encoding table.
         pos = unsafe_add(pos, 1)
 
     # If no matching character is found, it is an invalid input.
