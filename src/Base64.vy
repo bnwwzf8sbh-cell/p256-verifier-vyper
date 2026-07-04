@@ -188,79 +188,42 @@ def _decode(data: String[_DATA_OUTPUT_BOUND], base64_url: bool) -> DynArray[Byte
         # number for the original three characters.
         chunk: String[4] = slice(data, idx, 4)
 
-        # Base64 encoding with a URL and filename-safe alphabet.
-        if base64_url:
-            c1: uint256 = self._index_of(slice(chunk, empty(uint256), 1), True)
-            c2: uint256 = self._index_of(slice(chunk, 1, 1), True)
-            c3: uint256 = self._index_of(slice(chunk, 2, 1), True)
-            c4: uint256 = self._index_of(slice(chunk, 3, 1), True)
+        c1: uint256 = self._index_of(slice(chunk, empty(uint256), 1), base64_url)
+        c2: uint256 = self._index_of(slice(chunk, 1, 1), base64_url)
+        c3: uint256 = self._index_of(slice(chunk, 2, 1), base64_url)
+        c4: uint256 = self._index_of(slice(chunk, 3, 1), base64_url)
 
-            # We concatenate the 6-bit index in the Base64
-            # character list, which gives the 24-bit number
-            # for the original three characters.
-            chunk_bytes: uint256 = (c1 << 18) | (c2 << 12) | (c3 << 6) | c4
+        # We concatenate the 6-bit index in the Base64
+        # character list, which gives the 24-bit number
+        # for the original three characters.
+        chunk_bytes: uint256 = (c1 << 18) | (c2 << 12) | (c3 << 6) | c4
 
-            # We split the 24-bit number into the original
-            # three 8-bit characters.
-            b1: bytes1 = convert(convert((chunk_bytes >> 16) & 255, uint8), bytes1)
-            b2: bytes1 = convert(convert((chunk_bytes >> 8) & 255, uint8), bytes1)
-            b3: bytes1 = convert(convert(chunk_bytes & 255, uint8), bytes1)
+        # We split the 24-bit number into the original
+        # three 8-bit characters.
+        b1: bytes1 = convert(convert((chunk_bytes >> 16) & 255, uint8), bytes1)
+        b2: bytes1 = convert(convert((chunk_bytes >> 8) & 255, uint8), bytes1)
+        b3: bytes1 = convert(convert(chunk_bytes & 255, uint8), bytes1)
 
-            # Case 1: padding of "==" as part of the encoded input.
-            if c3 == 64:
-                assert c4 == 64, "base64: invalid padding"
-                result.append(concat(b1, empty2))
-            # Case 2: padding of "=" as part of the encoded input.
-            elif c4 == 64:
-                result.append(concat(b1, b2, empty1))
-            # Case 3: no padding as part of the encoded input.
-            else:
-                result.append(concat(b1, b2, b3))
-
-            # The following line cannot overflow because we have
-            # limited the for loop by the `constant` parameter
-            # `_DATA_OUTPUT_BOUND`, which is bounded by the
-            # maximum value of `1_368`.
-            idx = unsafe_add(idx, 4)
-
-            # We break the loop once we reach the end of `data`.
-            if idx == data_length:
-                break
-        # Base64 encoding using the standard characters.
+        # Case 1: padding of "==" as part of the encoded input.
+        if c3 == 64:
+            assert c4 == 64, "base64: invalid padding"
+            result.append(concat(b1, empty2))
+        # Case 2: padding of "=" as part of the encoded input.
+        elif c4 == 64:
+            result.append(concat(b1, b2, empty1))
+        # Case 3: no padding as part of the encoded input.
         else:
-            c1: uint256 = self._index_of(slice(chunk, empty(uint256), 1), False)
-            c2: uint256 = self._index_of(slice(chunk, 1, 1), False)
-            c3: uint256 = self._index_of(slice(chunk, 2, 1), False)
-            c4: uint256 = self._index_of(slice(chunk, 3, 1), False)
+            result.append(concat(b1, b2, b3))
 
-            chunk_bytes: uint256 = (c1 << 18) | (c2 << 12) | (c3 << 6) | c4
+        # The following line cannot overflow because we have
+        # limited the for loop by the `constant` parameter
+        # `_DATA_OUTPUT_BOUND`, which is bounded by the
+        # maximum value of `1_368`.
+        idx = unsafe_add(idx, 4)
 
-            # We split the 24-bit number into the original
-            # three 8-bit characters.
-            b1: bytes1 = convert(convert((chunk_bytes >> 16) & 255, uint8), bytes1)
-            b2: bytes1 = convert(convert((chunk_bytes >> 8) & 255, uint8), bytes1)
-            b3: bytes1 = convert(convert(chunk_bytes & 255, uint8), bytes1)
-
-            # Case 1: padding of "==" as part of the encoded input.
-            if c3 == 64:
-                assert c4 == 64, "base64: invalid padding"
-                result.append(concat(b1, empty2))
-            # Case 2: padding of "=" as part of the encoded input.
-            elif c4 == 64:
-                result.append(concat(b1, b2, empty1))
-            # Case 3: no padding as part of the encoded input.
-            else:
-                result.append(concat(b1, b2, b3))
-
-            # The following line cannot overflow because we have
-            # limited the for loop by the `constant` parameter
-            # `_DATA_OUTPUT_BOUND`, which is bounded by the
-            # maximum value of `1_368`.
-            idx = unsafe_add(idx, 4)
-
-            # We break the loop once we reach the end of `data`.
-            if idx == data_length:
-                break
+        # We break the loop once we reach the end of `data`.
+        if idx == data_length:
+            break
 
     return result
 
