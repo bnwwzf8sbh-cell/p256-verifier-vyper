@@ -104,9 +104,10 @@ def _ecdsa_verify(message_hash: bytes32, r: uint256, s: uint256, pub_key: uint25
 @pure
 def _ec_aff_is_valid_pubkey(x: uint256, y: uint256) -> bool:
     """
-    @dev Check if a point in affine coordinates is on the curve. Reject 0 point at infinity.
+    @dev Check if a point in affine coordinates is on the curve.
+         Reject points with coordinates outside [1, p-1].
     """
-    if (x >= p or y >= p or (x == empty(uint256) and y == empty(uint256))):
+    if (x >= p or y >= p or x == empty(uint256) or y == empty(uint256)):
         return False
 
     return self._ec_aff_satisfies_curve_eqn(x, y)
