@@ -46,7 +46,7 @@ contract P256Verifier is Test {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     function setUp() public {
-        p256Verifier = vyperDeployer.deployContract("src/", "P256Verifier");
+        p256Verifier = vyperDeployer.deployContract("contracts/", "P256Verifier");
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/

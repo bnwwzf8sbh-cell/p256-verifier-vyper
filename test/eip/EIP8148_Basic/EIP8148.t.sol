@@ -47,7 +47,7 @@ contract EIP8148_Basic is Test {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     function setUp() public {
-        p256Verifier = vyperDeployer.deployContract("src/", "P256Verifier");
+        p256Verifier = vyperDeployer.deployContract("contracts/", "P256Verifier");
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
