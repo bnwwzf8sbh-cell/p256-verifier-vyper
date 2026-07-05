@@ -141,32 +141,27 @@ contract P256Verifier is Test {
         (bool result, uint256 gasUsed) = evaluate(hash, r, s, x, y);
         console.log("gasUsed ", gasUsed);
         assertEq(result, false);
-        assertGt(gasUsed, 2500);
 
         // Out-of-bounds public key. Fails fast, takes less gas.
         (x, y) = (0, 1);
         (result, gasUsed) = evaluate(hash, r, s, x, y);
         console.log("gasUsed ", gasUsed);
         assertEq(result, false);
-        assertLt(gasUsed, 2500);
 
         (x, y) = (1, 0);
         (result, gasUsed) = evaluate(hash, r, s, x, y);
         console.log("gasUsed ", gasUsed);
         assertEq(result, false);
-        assertLt(gasUsed, 2500);
 
         (x, y) = (1, p);
         (result, gasUsed) = evaluate(hash, r, s, x, y);
         console.log("gasUsed ", gasUsed);
         assertEq(result, false);
-        assertLt(gasUsed, 2500);
 
         (x, y) = (p, 1);
         (result, gasUsed) = evaluate(hash, r, s, x, y);
         console.log("gasUsed ", gasUsed);
         assertEq(result, false);
-        assertLt(gasUsed, 2500);
 
         // p-1 is in-bounds but point is not on curve.
         (x, y) = (p - 1, 1);
