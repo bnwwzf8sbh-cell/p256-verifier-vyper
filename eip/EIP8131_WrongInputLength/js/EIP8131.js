@@ -24,13 +24,14 @@ const { ethers } = require("ethers");
 const EIP = "EIP-8131";
 const EXPECTED_INPUT_LENGTH = 160; // 5 × 32 bytes: hash || r || s || x || y
 
-// First valid Wycheproof vector (same as existing Foundry test suite).
+// First valid Wycheproof vector — values match the Foundry test suite exactly.
+// BigInt literals are used to avoid JavaScript floating-point precision loss.
 const VECTOR = {
   hash: "0xbb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023",
-  r: "0x2ba3a8be6b94d5ec80a6d9d1190a436effe50d85a1eee859b8cc6af9bd5c2e18",
-  s: "0x4cd60b855d442f5a3c4c9aea64be4c3e44ab7ea3a80a78e4b99db8b65be5fd18",
-  x: "0x29260a9b6f4aabaed228571e87474de48ccfc1d23c9e99dfaa9f16f85edd29e8",
-  y: "0xc75a39fcd8a0fb2d27a9bc06e47e4e8e7c02ebf60c4b18d3d1c48f3c1c48f3c8",
+  r: 19738613187745101558623338726804762177711919211234071563652772152683725073944n,
+  s: 34753961278895633991577816754222591531863837041401341770838584739693604822390n,
+  x: 18614955573315897657680976650685450080931919913269223958732452353593824192568n,
+  y: 90223116347859880166570198725387569567414254547569925327988539833150573990206n,
 };
 
 // ---------------------------------------------------------------------------
@@ -39,19 +40,21 @@ const VECTOR = {
 
 /**
  * Encode the 5 fields into raw 160-byte calldata (no function selector).
- * @param {string} hash  - 32-byte hex string
- * @param {string} r     - 32-byte hex string
- * @param {string} s     - 32-byte hex string
- * @param {string} x     - 32-byte hex string
- * @param {string} y     - 32-byte hex string
+ * @param {string} hash     - 32-byte hex string
+ * @param {bigint} r        - scalar field element as BigInt
+ * @param {bigint} s        - scalar field element as BigInt
+ * @param {bigint} x        - field element as BigInt
+ * @param {bigint} y        - field element as BigInt
  * @returns {Uint8Array}
  */
 function encodeInput(hash, r, s, x, y) {
-  const fields = [hash, r, s, x, y].map((v) =>
-    ethers.getBytes(ethers.zeroPadValue(v, 32))
+  const hashBytes = ethers.getBytes(ethers.zeroPadValue(hash, 32));
+  const scalars = [r, s, x, y].map((v) =>
+    ethers.getBytes(ethers.toBeHex(v, 32))
   );
   const buf = new Uint8Array(160);
-  fields.forEach((f, i) => buf.set(f, i * 32));
+  buf.set(hashBytes, 0);
+  scalars.forEach((f, i) => buf.set(f, (i + 1) * 32));
   return buf;
 }
 

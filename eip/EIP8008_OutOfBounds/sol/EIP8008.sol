@@ -2,14 +2,14 @@
 pragma solidity 0.8.35;
 
 /**
- * @eip     EIP-8008
- * @title   Out-of-Bounds P256 Input Validation
- * @notice  Solidity layer for EIP-8008: defines the interface and a helper
- *          contract that classifies P256 verifier inputs as in-bounds or
- *          out-of-bounds before forwarding to the verifier. Rejects any public
- *          key coordinate that is zero or >= the curve prime field modulus p.
- * @layer   sol
- * @test    testOutOfBounds (test 2)
+ * @custom:eip    EIP-8008
+ * @title         Out-of-Bounds P256 Input Validation
+ * @notice        Solidity layer for EIP-8008: defines the interface and a helper
+ *                contract that classifies P256 verifier inputs as in-bounds or
+ *                out-of-bounds before forwarding to the verifier. Rejects any public
+ *                key coordinate that is zero or >= the curve prime field modulus p.
+ * @custom:layer  sol
+ * @custom:test   testOutOfBounds (test 2)
  *
  * Curve parameters (secp256r1 / P-256):
  *   p = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
@@ -25,7 +25,7 @@ interface IP256Verifier {
      * @dev Raw fallback call: takes 160 bytes (hash || r || s || x || y) and
      *      returns bytes32(1) for a valid signature, bytes32(0) otherwise.
      */
-    fallback() external returns (bytes32);
+    fallback(bytes calldata) external returns (bytes memory);
 }
 
 // ---------------------------------------------------------------------------
@@ -113,11 +113,9 @@ contract EIP8008_OutOfBounds {
         if (r == 0 || r >= CURVE_N) revert EIP8008__ScalarOutOfRange("r", r);
         if (s == 0 || s >= CURVE_N) revert EIP8008__ScalarOutOfRange("s", s);
 
-        // --- Forward validated input to the verifier ---
-        bytes memory input = abi.encodePacked(hash, r, s, x, y);
-        (bool success, bytes memory result) = verifier.staticcall(input);
+        (bool success, bool result) = _callVerifier(verifier, hash, r, s, x, y);
         require(success, "EIP8008: verifier call failed");
-        return abi.decode(result, (uint256)) == 1;
+        return result;
     }
 
     /**
@@ -136,9 +134,32 @@ contract EIP8008_OutOfBounds {
         if (!isValidPublicKey(x, y)) return false;
         if (!isValidScalars(r, s)) return false;
 
-        bytes memory input = abi.encodePacked(hash, r, s, x, y);
-        (bool success, bytes memory result) = verifier.staticcall(input);
+        (bool success, bool result) = _callVerifier(verifier, hash, r, s, x, y);
         if (!success) return false;
-        return abi.decode(result, (uint256)) == 1;
+        return result;
+    }
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                       INTERNAL HELPERS                     */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /**
+     * @dev Encode the five fields, staticcall the verifier, and decode
+     *      the bytes32 result.  Returns (callSuccess, verifierResult).
+     */
+    function _callVerifier(
+        address verifier,
+        bytes32 hash,
+        uint256 r,
+        uint256 s,
+        uint256 x,
+        uint256 y
+    ) private view returns (bool success, bool result) {
+        bytes memory input = abi.encodePacked(hash, r, s, x, y);
+        bytes memory raw;
+        (success, raw) = verifier.staticcall(input);
+        if (success && raw.length == 32) {
+            result = abi.decode(raw, (uint256)) == 1;
+        }
     }
 }

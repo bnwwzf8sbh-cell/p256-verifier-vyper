@@ -2,13 +2,13 @@
 pragma solidity 0.8.35;
 
 /**
- * @eip     EIP-8148
- * @title   Basic P256 Signature Verification
- * @notice  Foundry layer for EIP-8148: sanity-checks input/output handling of
- *          the P256 (secp256r1) verifier. Validates zero inputs, a valid
- *          Wycheproof vector, and an off-by-one invalid key.
- * @layer   foundry
- * @test    testBasic (test 1)
+ * @custom:eip    EIP-8148
+ * @title         Basic P256 Signature Verification
+ * @notice        Foundry layer for EIP-8148: sanity-checks input/output handling of
+ *                the P256 (secp256r1) verifier. Validates zero inputs, a valid
+ *                Wycheproof vector, and an off-by-one invalid key.
+ * @custom:layer  foundry
+ * @custom:test   testBasic (test 1)
  */
 
 import {Test, console} from "forge-std/Test.sol";
