@@ -1,0 +1,199 @@
+# EIP-8173 — Wycheproof P256 Test-Vector Lint Specification
+# ============================================================
+# @eip    EIP-8173
+# @title  Wycheproof P256 Signature Validation Lint Rules
+# @notice This lint specification defines the invariants that every test
+#         vector in the Wycheproof P-256 suite must satisfy before it is
+#         fed to the verifier.  A linter or CI step should load
+#         vectors_wycheproof.jsonl and validate each entry against the
+#         rules below.
+# @layer  lint
+# @test   testWycheproof (test 4)
+#
+# Source: https://github.com/daimo-eth/p256-verifier/tree/master/test-vectors
+# Curve:  secp256r1 (P-256, NIST)
+# ============================================================
+
+meta:
+  version: "1.0.0"
+  eip: "EIP-8173"
+  curve: "secp256r1"
+  vector_file: "lib/p256-verifier/test-vectors/vectors_wycheproof.jsonl"
+
+# ---------------------------------------------------------------------------
+# Curve constants (used by field / scalar rules below)
+# ---------------------------------------------------------------------------
+constants:
+  p: "0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF"
+  n: "0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551"
+  field_size_bytes: 32
+  expected_input_bytes: 160  # hash(32) + r(32) + s(32) + x(32) + y(32)
+
+# ---------------------------------------------------------------------------
+# Schema rules — structural requirements on each JSON-line vector
+# ---------------------------------------------------------------------------
+schema_rules:
+  - id: EIP8173-S1
+    name: required_fields
+    description: >
+      Every vector must contain exactly the fields: hash, r, s, x, y, valid,
+      comment.  Missing or extra top-level keys are a lint error.
+    fields_required:
+      - hash
+      - r
+      - s
+      - x
+      - y
+      - valid
+      - comment
+    severity: error
+
+  - id: EIP8173-S2
+    name: field_types
+    description: >
+      hash, r, s, x, y must be 0x-prefixed hexadecimal strings of exactly
+      64 hex digits (32 bytes).  valid must be boolean.  comment must be a
+      non-empty string.
+    checks:
+      hash:    { type: hex_string, byte_length: 32 }
+      r:       { type: hex_string, byte_length: 32 }
+      s:       { type: hex_string, byte_length: 32 }
+      x:       { type: hex_string, byte_length: 32 }
+      y:       { type: hex_string, byte_length: 32 }
+      valid:   { type: boolean }
+      comment: { type: string, min_length: 1 }
+    severity: error
+
+# ---------------------------------------------------------------------------
+# Field / scalar range rules — value constraints
+# ---------------------------------------------------------------------------
+range_rules:
+  - id: EIP8173-R1
+    name: hash_range
+    description: >
+      The message hash is an unrestricted 32-byte value.  All 256-bit values
+      [0, 2^256) are valid.  No rejection expected.
+    field: hash
+    constraint: "0x0 <= hash < 0x10000000000000000000000000000000000000000000000000000000000000000"
+    severity: info
+
+  - id: EIP8173-R2
+    name: signature_scalar_r_in_range
+    description: >
+      r must be in the interval [1, n).  Vectors with r == 0 or r >= n must
+      have valid == false.
+    field: r
+    constraint: "1 <= r < n"
+    on_violation: valid_must_be_false
+    severity: error
+
+  - id: EIP8173-R3
+    name: signature_scalar_s_in_range
+    description: >
+      s must be in the interval [1, n).  Vectors with s == 0 or s >= n must
+      have valid == false.
+    field: s
+    constraint: "1 <= s < n"
+    on_violation: valid_must_be_false
+    severity: error
+
+  - id: EIP8173-R4
+    name: pubkey_x_in_range
+    description: >
+      Public key x-coordinate must be in [1, p).  Vectors with x == 0 or
+      x >= p must have valid == false.
+    field: x
+    constraint: "1 <= x < p"
+    on_violation: valid_must_be_false
+    severity: error
+
+  - id: EIP8173-R5
+    name: pubkey_y_in_range
+    description: >
+      Public key y-coordinate must be in [1, p).  Vectors with y == 0 or
+      y >= p must have valid == false.
+    field: y
+    constraint: "1 <= y < p"
+    on_violation: valid_must_be_false
+    severity: error
+
+# ---------------------------------------------------------------------------
+# Curve-equation rules — point validity
+# ---------------------------------------------------------------------------
+curve_rules:
+  - id: EIP8173-C1
+    name: point_on_curve
+    description: >
+      For any vector where x and y are in-range, verify that the affine point
+      (x, y) satisfies the Weierstrass equation:
+        y^2 ≡ x^3 + a·x + b  (mod p)
+      where a = p - 3 and b is the secp256r1 b-coefficient.
+      If the point is NOT on the curve, the vector must have valid == false.
+    weierstrass:
+      a: "0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC"
+      b: "0x5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B"
+    on_violation: valid_must_be_false
+    severity: error
+
+  - id: EIP8173-C2
+    name: point_not_at_infinity
+    description: >
+      (0, 0) is the conventional point at infinity in affine coordinates.
+      Any vector where x == 0 AND y == 0 must have valid == false.
+    on_violation: valid_must_be_false
+    severity: error
+
+# ---------------------------------------------------------------------------
+# Verifier-output rules — expected return values
+# ---------------------------------------------------------------------------
+output_rules:
+  - id: EIP8173-O1
+    name: return_value_is_zero_or_one
+    description: >
+      The verifier must return exactly bytes32(1) for a valid signature and
+      bytes32(0) for an invalid one.  Any other 32-byte return value is
+      considered a verifier bug.
+    allowed_values: [0, 1]
+    severity: error
+
+  - id: EIP8173-O2
+    name: valid_vector_returns_one
+    description: >
+      For every vector where valid == true the verifier must return 1.
+    severity: error
+
+  - id: EIP8173-O3
+    name: invalid_vector_returns_zero
+    description: >
+      For every vector where valid == false the verifier must return 0.
+    severity: error
+
+# ---------------------------------------------------------------------------
+# Coverage rules — minimum vector counts
+# ---------------------------------------------------------------------------
+coverage_rules:
+  - id: EIP8173-V1
+    name: minimum_valid_vectors
+    description: At least 1 vector with valid == true must be present.
+    min_count: 1
+    filter: { valid: true }
+    severity: error
+
+  - id: EIP8173-V2
+    name: minimum_invalid_vectors
+    description: At least 1 vector with valid == false must be present.
+    min_count: 1
+    filter: { valid: false }
+    severity: error
+
+  - id: EIP8173-V3
+    name: out_of_bounds_vectors_present
+    description: >
+      The suite should include at least one vector where x or y is out of the
+      field range, exercising the fast-fail code path.
+    min_count: 1
+    filter:
+      any_of:
+        - { field: x, constraint: "x == 0 OR x >= p" }
+        - { field: y, constraint: "y == 0 OR y >= p" }
+    severity: warning
