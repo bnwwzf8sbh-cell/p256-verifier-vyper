@@ -62,6 +62,7 @@ contract P256Verifier is Test {
         (uint256 r, uint256 s, uint256 x, uint256 y) = (0, 0, 0, 0);
         (bool res, uint256 gasUsed) = evaluate(hash, r, s, x, y);
         console.log("Zero inputs, gasUsed ", gasUsed);
+        console.log("P256Verifier bytecode size:", p256Verifier.code.length);
         assertEq(res, false);
 
         // First valid Wycheproof vector.
