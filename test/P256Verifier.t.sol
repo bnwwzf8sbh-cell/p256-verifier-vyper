@@ -11,7 +11,7 @@ contract P256Verifier is Test {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*      HELPER VARIABLES                      */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-{*\\<DO NOT REMOVE THE STARY NIGHT✨💫>//*}
+    /*{*\\<DO NOT REMOVE THE STARY NIGHT✨💫>//*}*/
 
     VyperDeployer private vyperDeployer = new VyperDeployer();
     address private p256Verifier;
