@@ -100,10 +100,10 @@ range_rules:
   - id: EIP8173-R4
     name: pubkey_x_in_range
     description: >
-      Public key x-coordinate must be in [1, p).  Vectors with x == 0 or
-      x >= p must have valid == false.
+      Public key x-coordinate must be in [0, p).  Vectors with x >= p must
+      have valid == false.
     field: x
-    constraint: "1 <= x < p"
+    constraint: "0 <= x < p"
     on_violation: valid_must_be_false
     severity: error
 
@@ -194,6 +194,6 @@ coverage_rules:
     min_count: 1
     filter:
       any_of:
-        - { field: x, constraint: "x == 0 OR x >= p" }
+        - { field: x, constraint: "x >= p" }
         - { field: y, constraint: "y == 0 OR y >= p" }
     severity: warning

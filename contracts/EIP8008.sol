@@ -7,7 +7,8 @@ pragma solidity 0.8.35;
  * @notice        Solidity layer for EIP-8008: defines the interface and a helper
  *                contract that classifies P256 verifier inputs as in-bounds or
  *                out-of-bounds before forwarding to the verifier. Rejects any public
- *                key coordinate that is zero or >= the curve prime field modulus p.
+ *                public key y coordinate that is zero, or any coordinate
+ *                >= the curve prime field modulus p.
  * @custom:layer  sol
  * @custom:test   testOutOfBounds (test 2)
  *
@@ -59,11 +60,11 @@ contract EIP8008_OutOfBounds {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /**
-     * @notice Returns true iff both (x, y) are valid affine coordinates for
-     *         the P-256 curve (non-zero and strictly less than p).
+     * @notice Returns true iff the coordinates are within the P-256 field and
+     *         y is non-zero.
      */
     function isValidPublicKey(uint256 x, uint256 y) public pure returns (bool) {
-        if (x == 0 || y == 0) return false;
+        if (y == 0) return false;
         if (x >= CURVE_P || y >= CURVE_P) return false;
         return true;
     }
@@ -102,8 +103,8 @@ contract EIP8008_OutOfBounds {
         uint256 x,
         uint256 y
     ) external view returns (bool valid) {
-        // --- EIP-8008-R1: public key coordinates must be non-zero ---
-        if (x == 0 || y == 0) revert EIP8008__ZeroCoordinate();
+        // --- EIP-8008-R1: public key y coordinate must be non-zero ---
+        if (y == 0) revert EIP8008__ZeroCoordinate();
 
         // --- EIP-8008-R2: public key coordinates must be < p ---
         if (x >= CURVE_P) revert EIP8008__CoordinateOutOfRange("x", x);

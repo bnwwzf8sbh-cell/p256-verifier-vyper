@@ -40,6 +40,12 @@ def __init__():
     pass
 
 
+@external
+@pure
+def encode(data: Bytes[_DATA_INPUT_BOUND], base64_url: bool) -> DynArray[String[4], _DATA_OUTPUT_BOUND]:
+    return self._encode(data, base64_url)
+
+
 @internal
 @pure
 def _encode(data: Bytes[_DATA_INPUT_BOUND], base64_url: bool) -> DynArray[String[4], _DATA_OUTPUT_BOUND]:
@@ -147,6 +153,12 @@ def _encode(data: Bytes[_DATA_INPUT_BOUND], base64_url: bool) -> DynArray[String
     return char_chunks
 
 
+@external
+@pure
+def decode(data: String[_DATA_OUTPUT_BOUND], base64_url: bool) -> DynArray[Bytes[3], _DATA_INPUT_BOUND]:
+    return self._decode(data, base64_url)
+
+
 @internal
 @pure
 def _decode(data: String[_DATA_OUTPUT_BOUND], base64_url: bool) -> DynArray[Bytes[3], _DATA_INPUT_BOUND]:
@@ -192,6 +204,10 @@ def _decode(data: String[_DATA_OUTPUT_BOUND], base64_url: bool) -> DynArray[Byte
         c2: uint256 = self._index_of(slice(chunk, 1, 1), base64_url)
         c3: uint256 = self._index_of(slice(chunk, 2, 1), base64_url)
         c4: uint256 = self._index_of(slice(chunk, 3, 1), base64_url)
+
+        assert c1 < 64 and c2 < 64, "base64: invalid padding"
+        if c3 == 64 or c4 == 64:
+            assert idx + 4 == data_length, "base64: invalid padding"
 
         # We concatenate the 6-bit index in the Base64
         # character list, which gives the 24-bit number
