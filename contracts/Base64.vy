@@ -71,8 +71,8 @@ def _encode(data: Bytes[_DATA_INPUT_BOUND], base64_url: bool) -> DynArray[String
     # have padding added so that its length is a
     # multiple of four.
     padding: uint256 = data_length % 3
-    empty2: Bytes[2] = empty(Bytes[2])
-    empty1: Bytes[1] = empty(Bytes[1])
+    empty2: Bytes[2] = b"\x00\x00"
+    empty1: Bytes[1] = b"\x00"
     data_padded: Bytes[_DATA_INPUT_BOUND + 2] = b""
     if padding == 1:
         data_padded = concat(data, empty2)
