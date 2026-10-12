@@ -39,12 +39,10 @@ contract EIP8008_OutOfBounds {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @notice secp256r1 prime field modulus.
-    uint256 public constant CURVE_P =
-        0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF;
+    uint256 public constant CURVE_P = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF;
 
     /// @notice secp256r1 scalar field order.
-    uint256 public constant CURVE_N =
-        0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551;
+    uint256 public constant CURVE_N = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                         ERRORS                             */
@@ -95,14 +93,11 @@ contract EIP8008_OutOfBounds {
      * @param y         Public key y coordinate.
      * @return valid    True iff the signature is valid.
      */
-    function guardedVerify(
-        address verifier,
-        bytes32 hash,
-        uint256 r,
-        uint256 s,
-        uint256 x,
-        uint256 y
-    ) external view returns (bool valid) {
+    function guardedVerify(address verifier, bytes32 hash, uint256 r, uint256 s, uint256 x, uint256 y)
+        external
+        view
+        returns (bool valid)
+    {
         // --- EIP-8008-R1: public key y coordinate must be non-zero ---
         if (y == 0) revert EIP8008__ZeroCoordinate();
 
@@ -124,14 +119,11 @@ contract EIP8008_OutOfBounds {
      *         rather than reverting. Mirrors the behaviour of the verifier
      *         itself (fast-fail without gas-intensive modexp).
      */
-    function silentVerify(
-        address verifier,
-        bytes32 hash,
-        uint256 r,
-        uint256 s,
-        uint256 x,
-        uint256 y
-    ) external view returns (bool valid) {
+    function silentVerify(address verifier, bytes32 hash, uint256 r, uint256 s, uint256 x, uint256 y)
+        external
+        view
+        returns (bool valid)
+    {
         if (!isValidPublicKey(x, y)) return false;
         if (!isValidScalars(r, s)) return false;
 
@@ -148,14 +140,11 @@ contract EIP8008_OutOfBounds {
      * @dev Encode the five fields, staticcall the verifier, and decode
      *      the bytes32 result.  Returns (callSuccess, verifierResult).
      */
-    function _callVerifier(
-        address verifier,
-        bytes32 hash,
-        uint256 r,
-        uint256 s,
-        uint256 x,
-        uint256 y
-    ) private view returns (bool success, bool result) {
+    function _callVerifier(address verifier, bytes32 hash, uint256 r, uint256 s, uint256 x, uint256 y)
+        private
+        view
+        returns (bool success, bool result)
+    {
         bytes memory input = abi.encodePacked(hash, r, s, x, y);
         bytes memory raw;
         (success, raw) = verifier.staticcall(input);
