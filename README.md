@@ -3,7 +3,6 @@
 [![🕵️‍♂️ Test smart contracts](https://github.com/pcaversaccio/p256-verifier-vyper/actions/workflows/test.yml/badge.svg)](https://github.com/pcaversaccio/p256-verifier-vyper/actions/workflows/test.yml)
 [![License: AGPL-3.0-only](https://img.shields.io/badge/License-AGPL--3.0--only-blue)](https://www.gnu.org/licenses/agpl-3.0)
 
-
 > [!TIP]
 > A fully optimised and thoroughly tested `P256` verifier using the latest Vyper version `0.4.0` .
 
