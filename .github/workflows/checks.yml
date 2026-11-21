@@ -80,4 +80,7 @@ jobs:
         run: gem install awesome_bot
 
       - name: Validate URLs
-        run: awesome_bot ./*.md src/*.vy test/*.sol --allow-dupe --request-delay 0.4 --white-list https://stackoverflow.com,https://hyperelliptic.org,https://p256.eth.limo
+        run: >-
+          awesome_bot ./*.md src/*.vy test/*.sol --allow-dupe --request-delay 0.4
+          --white-list
+          https://github.com,https://img.shields.io,https://www.gnu.org,https://stackoverflow.com,https://hyperelliptic.org,https://p256.eth.limo,https://sepolia.etherscan.io,https://hoodi.etherscan.io,https://blog.daimo.com,https://etherscan.io
